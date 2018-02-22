@@ -1,9 +1,7 @@
 
 # LCD display on Raspberry pi
-
-We are using the luma library to display text and menus.
-
-Refer to: https://github.com/rm-hull/luma.examples
+- We are using the luma library to display text and menus.
+- Refer to: https://github.com/rm-hull/luma.examples
 
 ## Usage info
 Example in `main_menu.py`.
@@ -17,7 +15,9 @@ menu_options = {
 m = Menu(menu_options)
 ```
 
+
 Then to display/update the screen: either call `m.run()` or `m.run(updated_options)`.
+
 To update the menu:
 ```python
 menu_options = {
@@ -35,8 +35,10 @@ Do not add more than 6 options.
 
 It won't work.
 
+Seriously.
+
 
 ## Running on personal computer
-Pip install (using virtualenv or conda is suggested): `pip install luma.emulator`
-
-For the demo: from the current directory run `python main_menu.py --display=pygame`
+- Install `luma.oled` (using virtualenv or conda is suggested): `pip install luma.oled`
+- Install `luma.emulator` (using virtualenv or conda is suggested): `pip install luma.emulator`
+- For the demo: from the current directory run `python main_menu.py --display=pygame`
