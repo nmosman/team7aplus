@@ -22,7 +22,7 @@ def bounce_animation():
 
 
 class Menu(object):
-    """docstring for Menu"""
+    """Main menu"""
     def __init__(self, menu_options):
         assert len(menu_options["options"]) <= 6 # Limit to 6 options
         self.options = menu_options
@@ -40,10 +40,9 @@ class Menu(object):
                 if i == self.options["cursor"]:
                     draw.text((40, 2+i*10), ">", fill="white")
 
+            # Animation
             x, y = (15, 23)
             radius = 4
-    
-            # Animation
             anim = next(self.ha) # Get the next location & scale for the heart sprite
             y_anim = anim * 15 + y
             scale = anim * 15 + 15
