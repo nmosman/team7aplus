@@ -23,9 +23,23 @@ if name == "__main__":
         # Write high to issue sending cmd 
         GPIO.output(18, GPIO.HIGH)
         time.sleep(0.001)
-        
-       # read 256 bytes from GPIO18
-    
+       
+
+        # start the Bluetooth service
+        server_sock = BluetoothSocket(RFCOMM)
+        server_sock.bind(("", PORT_ANY))
+        server_sock.listen(1)
+        port = server_sock.getsockname()[1]
+        uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+
+        advertise_service( server_sock, "oxysis-bt",
+                           service_id = uuid,
+                           service_classes = [uuid, SERIAL_PORT_CLASS],
+                           profiles = [SERIAL_PORT_PROFILE] )
+     
+
+        # wait for connection
+        client_sock, client_info = server_sock.accept()
        # perform the heart rate algo.
         
    
