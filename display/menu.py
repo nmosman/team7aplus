@@ -7,12 +7,11 @@ import math
 import time
 import numpy as np
 from time import sleep
-from demo_opts import get_device
 from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
 
 # For connecting to the physical device
-from luma.core.interface.serial import i2c, spi
+from luma.core.interface.serial import i2c
 from luma.oled.device import ssd1306
 
 
@@ -24,11 +23,12 @@ def bounce_animation():
     origin = 0
     while True:
         yield -abs(math.sin(radians(origin)))
-        origin = (origin + 3.5) % 360 # Essentially same as += 1 for sin
+        origin = (origin + 13.5) % 360 # Essentially same as += 1 for sin
 
 
 def main():
-    device = get_device()
+    serial = i2c(port=1, address=0x3C)
+    device = ssd1306(serial)
 
     while True:
         prev_time = time.time()
@@ -36,7 +36,7 @@ def main():
         count = 1000
         heart_data = []
         for i in range(501):
-            count += 0.1
+            count += 5
             val = (np.sin(count) + 1) / 2
             val += (np.sin(count*2+80) + 1) / 2
             heart_data.append(val)
@@ -48,7 +48,7 @@ def main():
 
         while (time.time() - prev_time) < 100:
             with canvas(device, dither=True) as draw:
-                count += 0.1
+                count += 1
 
                 val = (np.sin(count) + 1) / 2
                 val += (np.sin(count*2+80) + 1) / 2
@@ -59,7 +59,7 @@ def main():
 
                 # Menu options
                 for i, el in enumerate(heart_data):
-                    if True:
+                    if i % 5 == 0:
                         x = int(i/10 + 55)
                         y = (device.height/3 - 1) * el
                         if i != 0:
@@ -87,3 +87,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
