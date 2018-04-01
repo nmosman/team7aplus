@@ -1,0 +1,137 @@
+//slave code taken from - https://arduino.stackexchange.com/questions/16292/sending-and-receiving-different-types-of-data-via-i2c-in-arduino
+//master/slave arduino/attiny code - http://www.gammon.com.au/i2c, https://github.com/rambo/TinyWire/tree/master/TinyWireS/examples, https://github.com/madsci1016/Arduino-EasyTransfer
+
+//#include <avr/io.h>
+//#include <Wire.h> //removed for SoftwareSerial
+#include <SoftwareSerial.h>
+#define RX 3
+#define TX 4
+
+SoftwareSerial Serial1 (RX,TX);
+
+//int analogData; //declare global
+//char smdata[10]; //data from slave to master
+//volatile int Val; //data from master to slave
+
+void setup() {
+  int adcvalue = 0;
+  Serial1.begin(9600);
+  /*
+  Wire.begin(8) //slave id #8 - may need to change
+  Wire.onRequest(requestEvent); //function of slave when asking for data
+  Wire.onReceive(receiveEvent); //function of slave when data received from master //removed for SoftwareSerial
+  */
+/*
+  // put your setup code here, to run once:
+  //ADMUX |= (0 << REFS0); //change to values listed below to change the adc reference voltage
+  //ADMUX |= (1 << REFS1);
+  //ADMUX |= (1 << REFS2); //uses internal 2.56V reference w/o external bypass cap. (d/c'd from PB0)
+  */
+  /*
+   * //note that REFS0-3 are initialized to 0
+   * ADMUX |= (1 << REFS0); //A
+   * ADMUX |= (1 << REFS1);
+   * ADMUX |= (1 << REFS2); //uses internal 2.56V reference w/ external bypass cap. (connected at PB0) - use 3V Vcc
+   * 
+   * ADMUX |= (0 << REFS0); //B
+   * ADMUX |= (1 << REFS1);
+   * ADMUX |= (0 << REFS2); //uses internal reference 1.1V
+   * 
+   * ADMUX |= (0 << REFS0); //C - note these values are already initialized to 0 as default
+   * ADMUX |= (0 << REFS1); //uses VCC as reference voltage (d/c'd from PB0) - uses port 8
+   * //REFS2 = 'X' - refer to datasheet p. 133 - must declare as 'X' to use
+   */ 
+   /*
+   ADMUX |= (1 << REFS0); //D
+   ADMUX |= (0 << REFS1); //uses external voltage reference at PB0 (internal reference off)
+   ADMUX |= ('X' << REFS2); //refer to datasheet p. 133 - must declare as 'X' to use
+ 
+   ADMUX |= (1 << MUX0); //analog input - port 7 (ADC1)
+   ADMUX |= (0 << MUX1); //to change analog input port use MUX(1:0) = "10" for port 3 (ADC2), "01" for port 7 (ADC1), "00" for port 1 (ADC0)
+
+   //ADMUX |= (1 << ADLAR); //left adjust for 8 bit ADC
+   ADMUX |= (0 << ADLAR); //right adjust for 10 bit ADC - use for higher resolution
+   //the above ADMUX configuration is equivalent to 'ADMUX = 0x0REFS1/REFS2/ADLAR/REFS2/MUX3/MUX2/MUX1/MUX0 - replace with numbers above'
+
+   ADCSRA |= (1 << ADEN); //ADEN = 1 initializes the ADC
+   ADCSRA |= (1 << ADPS1);
+   ADCSRA |= (1 << ADPS0); //ADC prescaler divides the CLK frequency by 8 (i.e if set to 1MHz CLK then ADC frequency is 1MHz/8 = 125kHz) using 8MHz - 1MHz ADC frequency
+   */
+   /*
+    * ADPS2:0 = "000" - 2, "001" - 2, "010" - 4, "100" - 16, "101" - 32, "110" - 64, "111" - 128
+    * note - for 10 bit ADC use 50kHz - 200kHz frequency, for 8 bit ADC can use > 200kHz
+    * note - not recommended to use ADC frequency > 1MHz
+    * note - use ATtiny85 library - to set internal CLK frequency
+    */
+
+    //ADCSRA = (1 << ADSC); //use this line to enable free running mode - uses more power - delete ADSC line in void loop()
+
+    //mySerial.begin(9600); //initialize serial interface
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  //ADCSRA = (1 << ADSC); //start ADC conversion - single conversion mode - delete this line for free running mode
+  //analogData = ADCH; //for 8 bit ADC - for 10 bit resolution need to initialize variable to ADCL
+
+  //int aRead = ADCH; //plug a potentiometer or a resistor to pin A0, so you can see data being transfer
+  //float x = aRead/1024.0*5.0; //generate a float number, with this method you can use any time of data pretty much - there are other methods to do this
+
+  //dtostrf(x, 3, 2, smdata); //integer or float type to string conversion (variable, str length, digits after decimal, array) - may need to change values - test on master
+  
+  //Serial.println(Val); //prints character
+  //Serial.print("ADC conversion: ");
+  //aRead = aRead * 2; //amplifies the ADC signal
+  //if (aRead > 1035){
+  //  aRead = 1040; //kills signal past a 2.5V reading - mic signal ranges between 1-2V
+  int adcvalue = analogRead(A1)*2;
+  // <- the problem, A2, A3 do not work as well
+  if (adcvalue >= 1023) {
+    adcvalue = 1023;
+  }
+  delay(21);
+  Serial1.print(adcvalue);
+  }
+  
+  //Serial1.print(aRead); //prints ADC value to serial monitor
+  //delay(100); //1s interval between readings
+
+/* removed for SoftwareSerial
+void requestEvent() { //function 
+  Wire.write(smdata); 
+}
+
+void receiveEvent(int howMany)  {
+  Val = Wire.read();
+}
+*/
+////master - copied from website - refer to above
+//#include <Wire.h>
+//
+//char smdata[10]={};//empty array where to put the numbers comming from the slave
+//volatile int Val; // varaible used by the master to sent data to the slave
+//
+//void setup() {
+//  Wire.begin();        // join i2c bus (address optional for master)
+//  Serial.begin(9600);  // start serial for output
+//}
+//
+//void loop() {
+//  Wire.requestFrom(8, 3);    // request 3 bytes from slave device #8
+//
+////gathers data comming from slave
+//int i=0; //counter for each bite as it arrives
+//  while (Wire.available()) { 
+//    t[i] = Wire.read(); // every character that arrives it put in order in the empty array "t"
+//    i=i+1;
+//  }
+//
+//Serial.println(t);   //shows the data in the array t
+//delay(500); //give some time to relax
+//
+//// send data to slave. here I am just sending the number 2
+//  Val=2;
+//  Wire.beginTransmission (8);
+//  Wire.write (Val);
+//  Wire.endTransmission ();
+//}
