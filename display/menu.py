@@ -9,6 +9,8 @@ import numpy as np
 from time import sleep
 from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
+from demo_opts import get_device
+
 
 # For connecting to the physical device
 from luma.core.interface.serial import i2c
@@ -23,20 +25,24 @@ def bounce_animation():
     origin = 0
     while True:
         yield -abs(math.sin(radians(origin)))
-        origin = (origin + 13.5) % 360 # Essentially same as += 1 for sin
+        origin = (origin + 3.5) % 360 # Essentially same as += 1 for sin
+
+
+sigmoid = lambda x: (1 / (1 + np.exp(10.985 - 0.0219*x)))
 
 
 def main():
-    serial = i2c(port=1, address=0x3C)
-    device = ssd1306(serial)
+    # serial = i2c(port=1, address=0x3C)
+    # device = ssd1306(serial)
+    device = get_device()
 
     while True:
         prev_time = time.time()
 
         count = 1000
         heart_data = []
-        for i in range(501):
-            count += 5
+        for i in range(50):
+            count += 1
             val = (np.sin(count) + 1) / 2
             val += (np.sin(count*2+80) + 1) / 2
             heart_data.append(val)
@@ -46,7 +52,7 @@ def main():
         prev_x = 0
         prev_y = 0
 
-        while (time.time() - prev_time) < 100:
+        while (time.time() - prev_time) < 100000:
             with canvas(device, dither=True) as draw:
                 count += 1
 
@@ -59,12 +65,12 @@ def main():
 
                 # Menu options
                 for i, el in enumerate(heart_data):
-                    if i % 5 == 0:
-                        x = int(i/10 + 55)
-                        y = (device.height/3 - 1) * el
-                        if i != 0:
-                            draw.polygon((x, y, prev_x, prev_y), fill="white")
-                        prev_x, prev_y = x,y
+                    # if i % 10 == 0:
+                    x = int(2*i + 55)
+                    y = (device.height/3 - 1) * el
+                    if i != 0:
+                        draw.polygon((x, y, prev_x, prev_y), fill="white")
+                    prev_x, prev_y = x,y
 
 
                 # Animation
