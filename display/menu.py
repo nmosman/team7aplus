@@ -8,6 +8,7 @@ import sys
 import math
 import time
 import numpy as np
+import requests 
 from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
 # For connecting to the physical device
@@ -38,7 +39,7 @@ def sigmoid(x):
 def main():
     serial = i2c(port=1, address=0x3C)
     device = ssd1306(serial)
-    
+    serverUrl = 'http://ec2-35-183-45-159.ca-central-1.compute.amazonaws.com:3112/uploads/'
     
 
     while True:
@@ -80,10 +81,15 @@ def main():
             
             data_to_api.append(int(data[1:-1]))
             if len(data_to_api) > 10000:
-                with open("./toapi.txt", "a") as f:
+                with open("./toapi.txt", "w") as f:
                     f.write(str(data_to_api))
+                    
                 data_to_api = []
-                
+            
+            # make server call to update ecg 
+            files = {'files': open('./toapi.txt', 'rb')}
+            r = requests.post(serverUrl, files=files)   
+            
             data = sigmoid(int(data[1:-1]))
             print(data)
             heart_data.append(data)
