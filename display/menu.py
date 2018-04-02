@@ -57,6 +57,7 @@ def main():
             
         while True:
             print("here")
+            data_to_api = []
             data = ""
             #data = "100"
             try:
@@ -76,6 +77,13 @@ def main():
                     print("not working {}".format(data))
  
             print(data[1:-1])
+            
+            data_to_api.append(int(data[1:-1]))
+            if len(data_to_api) > 10000:
+                with open("./toapi.txt", "a") as f:
+                    f.write(str(data_to_api))
+                data_to_api = []
+                
             data = sigmoid(int(data[1:-1]))
             print(data)
             heart_data.append(data)
