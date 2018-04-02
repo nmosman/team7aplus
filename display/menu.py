@@ -2,19 +2,23 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
+from bluetooth import *
+import time
 import sys
 import math
 import time
 import numpy as np
-from time import sleep
 from luma.core.render import canvas
 from luma.core.sprite_system import framerate_regulator
-from demo_opts import get_device
-
-
 # For connecting to the physical device
 from luma.core.interface.serial import i2c
 from luma.oled.device import ssd1306
+
+
+bd_addr = "00:21:13:04:50:F4"
+port = 1
+sock = BluetoothSocket (RFCOMM)
+sock.connect((bd_addr,port))
 
 
 def radians(degrees):
@@ -25,16 +29,17 @@ def bounce_animation():
     origin = 0
     while True:
         yield -abs(math.sin(radians(origin)))
-        origin = (origin + 3.5) % 360 # Essentially same as += 1 for sin
-
-
-sigmoid = lambda x: (1 / (1 + np.exp(10.985 - 0.0219*x)))
+        origin = (origin + 13.5) % 360 # Essentially same as += 1 for sin
+        
+def sigmoid(x):
+    return 1 / (1 + math.exp(10.895 - 0.0219*x))
 
 
 def main():
-    # serial = i2c(port=1, address=0x3C)
-    # device = ssd1306(serial)
-    device = get_device()
+    serial = i2c(port=1, address=0x3C)
+    device = ssd1306(serial)
+    
+    
 
     while True:
         prev_time = time.time()
@@ -42,39 +47,60 @@ def main():
         count = 1000
         heart_data = []
         for i in range(50):
-            count += 1
-            val = (np.sin(count) + 1) / 2
-            val += (np.sin(count*2+80) + 1) / 2
-            heart_data.append(val)
+            heart_data.append(0.5)
 
         ha = bounce_animation()
 
         prev_x = 0
         prev_y = 0
 
-        while (time.time() - prev_time) < 100000:
+            
+        while True:
+            print("here")
+            data = ""
+            #data = "100"
+            try:
+                data = sock.recv(5).decode("ascii")
+            except:
+                data = ""
+            
+            while True:
+             if (len(data) != 0):
+                 if ((data[0] == "c" and data[-1] == "d")):
+                     break
+                 else:
+                    try:
+                        data = sock.recv(5).decode("ascii")
+                    except:
+                        data = ""
+                    print("not working {}".format(data))
+ 
+            print(data[1:-1])
+            data = sigmoid(int(data[1:-1]))
+            print(data)
+            heart_data.append(data)
+            heart_data = heart_data[1:]
+            
+            heart_detected = True
             with canvas(device, dither=True) as draw:
-                count += 1
-
-                val = (np.sin(count) + 1) / 2
-                val += (np.sin(count*2+80) + 1) / 2
-                val += (np.sin(count/4+10) + 1) / 2
-                heart_data.append(val)
-                heart_data = heart_data[1:]
-
-
+                if heart_detected:
+                    draw.text((10,4), "Reading heart data")
+                else:
+                    draw.text((10,4), "No heart data detected")
+                    
                 # Menu options
                 for i, el in enumerate(heart_data):
-                    # if i % 10 == 0:
-                    x = int(2*i + 55)
-                    y = (device.height/3 - 1) * el
-                    if i != 0:
-                        draw.polygon((x, y, prev_x, prev_y), fill="white")
-                    prev_x, prev_y = x,y
+                    if i % 1 == 0:
+                        x = int(i*2 + 55)
+                        y = device.height - (device.height - 17) * el
+                        if i != 0:
+                            draw.polygon((x, y, prev_x, prev_y), fill="white")
+                        prev_x, prev_y = x,y
 
+                
 
                 # Animation
-                x, y = (15, 23)
+                x, y = (15, 32)
                 radius = 4
                 anim = next(ha) # Get the next location & scale for the heart sprite
                 y_anim = anim * 15 + y
